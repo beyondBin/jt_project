@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jt.order.mapper.OrderMapper" >
+	
+	
+	<!-- resultMap：实现数据封装
+		 表：
+			 user_id,
+			 user_name,
+			 user_age
+		 对象：
+			 userId
+			 userName
+			 userAge
+	 -->
+	<!-- type:表示制定映射的数据类型(包名.类名 或  别名)
+		 id、result:标识符
+		 column="表中的字段名称"
+		 property="实体对象的中属性名称"
+		 extends="" 继承另一个resultMap的映射关系
+		 autoMapping="true" :
+		 (如果是单表映射,数据表的字段与对象属性同名则可省略映射步骤,
+		 使用自动映射autoMapping="true",单表映射是默认自动映射)
+		 (如果是多表关联映射,则全部的映射关系必须手动写
+		     如果主表的字段与对象的属性相同,则主表可自动映射,
+		     而从表必须全部编辑映射关系,缺一不可)		
+		  -->
+		  
+	<select id="findOrderById" resultMap="findOrder">
+		select * from tb_order where order_id = #{orderId}
+	</select>
+	
+	<resultMap type="Order" id="findOrder" autoMapping="true">
+		<id column="order_id" property="orderId"/>
+		
+		<!-- 封装一对一	订单物流信息    
+			 javaType:对象类型
+			 column:主外键关联字段
+			 select:查询语句
+		 -->
+		<association property="orderShipping" javaType="OrderShipping" column="order_id" select="findOrderShipping"/>
+		
+		<!-- 封装一对多	
+			 ofType:表示集合中元素的属性类型List<OrderItem>
+		-->
+		<collection property="orderItems" ofType="OrderItem" column="order_id" select="findOrderItems"></collection>
+		
+	</resultMap>
+	
+	<!-- 查出来的对象,为association中property属性赋值 -->
+	<select id="findOrderShipping" resultType="OrderShipping">
+		select * from tb_order_shipping where order_id=#{orderId}
+	</select>
+	
+	<select id="findOrderItems" resultType="OrderItem">
+		select * from tb_order_item where order_id=#{orderId}
+	</select>
+	
+	
+	
+	
+	<!-- 根据超时时间修改状态码(<号转义->&lt;)  
+		 也可将sql语句写入<![CDATA[XXXXXXXXXX]]>中
+	-->
+	<update id="updateStatus">
+		<![CDATA[
+		update tb_order set status = 6 where status = 1 and created < #{timeOut}
+		]]>
+		
+	</update>
+	
+	
+	
+	
+	
+	
+	
+	
+</mapper>

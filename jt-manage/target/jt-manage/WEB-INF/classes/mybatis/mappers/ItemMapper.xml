@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 
+	namespace作用：
+	1.namespace是Mapper映射文件的唯一标识,并且该标识不能重复
+	2.写法上应该和接口的路径保持一致
+	3.映射文件中可以编辑sql,其中的ID必须和接口方法名保持一致
+	 -->
+<mapper namespace="com.jt.manage.mapper.ItemMapper">
+
+	<select id="findAll" resultType="Item">
+		select * from tb_item
+	</select>
+
+	<!-- 实现分页查询
+		 1.windows 大小写不区分
+		 2.linux   大小写严格区分
+	 -->
+	<select id="findItemByPage" resultType="Item">
+		select * from tb_item 
+		order by updated desc
+		limit #{start},#{rows}
+	</select>
+
+	<!-- 
+		collection语法规则:
+		List集合   则只写list,和名称无关
+		Array数组  则止血array,和名称无关
+		Map集合  则只写map中的key
+	 -->
+	<update id="updateStatus">
+		update tb_item set status=#{status},updated=now()
+		where id in (
+			<foreach collection="ids" item="id" separator=",">
+				#{id}
+			</foreach>
+		)
+	</update>
+
+
+
+
+</mapper>
