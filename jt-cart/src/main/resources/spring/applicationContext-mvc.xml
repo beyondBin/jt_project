@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/beans 
+		http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/mvc 
+        http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd
+        http://www.springframework.org/schema/context 
+        http://www.springframework.org/schema/context/spring-context.xsd">
+        
+	<!-- 配置SPRING-MVC -->
+
+	<!-- 1.开启MVC注解形式 -->
+	<mvc:annotation-driven/>
+	
+	<!-- 放行静态资源 -->
+	<mvc:default-servlet-handler/>
+	
+	<!-- 2.配置视图解析器(内部资源视图解析器:internalResourceViewResolver) -->
+	<bean id="viewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<!-- 使用set方法进行注入 -->
+		<property name="prefix" value="/WEB-INF/views/"/>
+		<property name="suffix" value=".jsp"/>
+	</bean>
+	<!-- 3.配置文件上传视图解析器
+		 id必须为multipartResolver！！！
+	 -->
+	<bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+		<!-- 定义字符集编码和上传最大值(1048576为1MB) -->
+		<property name="defaultEncoding" value="utf-8"/>
+		<property name="maxUploadSize" value="10485760"/>
+	</bean>
+
+</beans>

@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop" 
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+	http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd
+	http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.0.xsd 
+	http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.0.xsd
+	http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.0.xsd">
+
+	<!-- 配置SPRING -->
+	
+	<!-- 1.配置包扫描 -->
+	<context:component-scan base-package="com.jt"/>
+	
+	<!-- 扫描外部配置文件交给spring容器管理
+		 若出现多个配置文件,如何处理？
+		 解决方案：   1.使用通配符处理：*
+		 		 2.使用bean的方式通过list标签方式进行管理
+	 -->
+	<!-- <context:property-placeholder location="classpath:/properties/*.properties"/> -->
+	<bean id="propertyConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+				<value>classpath:/properties/jdbc.properties</value>
+				<value>classpath:/properties/redis.properties</value>
+			</list>
+		</property>
+	</bean>
+	
+	<!-- 2.配置数据源:boneCp(Druid也可) -->
+	<bean id="dataSource" class="com.jolbox.bonecp.BoneCPDataSource" destroy-method="close">
+		<property name="driverClass" value="${jdbc.driver}" />
+		<property name="jdbcUrl" value="${jdbc.url}" />
+		<property name="username" value="${jdbc.username}" />
+		<property name="password" value="${jdbc.password}" />
+		<!-- 检查数据库连接池中空闲连接的间隔时间，单位是分，默认值：240，如果要取消则设置为0 -->
+		<property name="idleConnectionTestPeriod" value="60" />
+		<!-- 连接池中未使用的链接最大存活时间，单位是分，默认值：60，如果要永远存活设置为0 -->
+		<property name="idleMaxAge" value="30" />
+		<!-- 每个分区最大的连接数 -->
+		<property name="maxConnectionsPerPartition" value="150" />
+		<!-- 每个分区最小的连接数 -->
+		<property name="minConnectionsPerPartition" value="5" />
+	</bean>
+	
+	
+	<!-- 3.配置声明式事务处理 -->
+		<!-- 3.1配置事务管理器 -->
+		<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+			<property name="dataSource" ref="dataSource"/>
+		</bean>
+		<!-- 3.2定义事务策略
+			 propagation="REQUIRED" 事务传播属性="必须添加事务(默认值)"
+			 propagation="SUPPORTS" 表示事务支持的:如果原来有事务则使用原事务,如果没有,也不添加事务
+			 propagation="REQUIRES_NEW" 表示每次执行时都会创建新的事务
+			 read-only="true"  表示只读,不允许操作数据
+			 注意:如果使用了声明式事务处理,则业务方法必须与方法名匹配,否则不能正确操作数据库!
+		 -->
+		<tx:advice id="txAdvice" transaction-manager="transactionManager">
+			<tx:attributes>
+				<tx:method name="save*" propagation="REQUIRED"/>
+				<tx:method name="delete*" propagation="REQUIRED"/>
+				<tx:method name="update*" propagation="REQUIRED"/>
+				<tx:method name="find*" propagation="SUPPORTS" read-only="true"/>
+				<tx:method name="*" propagation="SUPPORTS" read-only="true"/>
+			</tx:attributes>
+		</tx:advice>
+		<!-- 3.3配置事务切面 -->
+		<!-- 若要用注解形式,则需开启AOP注解:<aop:aspectj-autoproxy/> -->
+		<aop:config>
+			<aop:pointcut expression="execution(* com.jt.cart.service..*.*(..))" id="pc"/>
+			<aop:advisor advice-ref="txAdvice" pointcut-ref="pc"/>
+		</aop:config>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+</beans>
